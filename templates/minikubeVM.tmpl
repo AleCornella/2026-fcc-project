@@ -1,0 +1,38 @@
+NAME = "Minikube_VM"
+CPU = "4"
+VCPU = "4"
+MEMORY = "16384"
+DESCRIPTION = "VM initialized with MiniKube installed and a minikube user with password minikube"
+HYPERVISOR = "kvm"
+SCHED_REQUIREMENTS = "HYPERVISOR=kvm"
+
+CONTEXT = [
+  NETWORK = "YES",
+  PASSWORD = "dci+KL12bIGtq+TFZukZrQ==",
+  SSH_PUBLIC_KEY = "$USER[SSH_PUBLIC_KEY]",
+  #START_SCRIPT_BASE64 = "${STARTUP_SCRIPT}",
+  USERNAME = "minikube"
+]
+
+DISK = [
+  IMAGE_ID = "${IMAGE_ID}",
+  IMAGE_UNAME = "oneadmin",
+  SIZE = "20480"
+]
+
+GRAPHICS = [
+  LISTEN = "0.0.0.0",
+  PASSWD = "mJ43k9uOu5",
+  TYPE = "VNC"
+]
+
+HOT_RESIZE = [
+  MEMORY_HOT_ADD_ENABLED = "NO"
+]
+
+NIC = [
+  NETWORK = "vnet",
+  NETWORK_ID = "0",
+  NETWORK_UID = "0",
+  NETWORK_UNAME = "oneadmin"
+]
