@@ -50,7 +50,7 @@ fi
 EXISTING_TEMPLATE_ID=$(onetemplate list -f NAME="Ubuntu+minikube" -l ID --csv  | tail -n +2)
 TEMPLATE_ID="$EXISTING_TEMPLATE_ID"
 if [[ -n "$EXISTING_TEMPLATE_ID" ]]; then
-    echo "Template already exists with ID: $EXISTING_TEMPLATE_ID. Creating new VM"
+    echo "Template already exists with ID: $EXISTING_TEMPLATE_ID. To force the recreation of the template, use the -f/--force option."
     if [[ "$FORCE_TEMPLATE_RECREATE" == true ]]; then
         echo "Forcing recreation of the template..."
         onetemplate delete "$EXISTING_TEMPLATE_ID"
@@ -102,6 +102,7 @@ if [[ -n "$EXISTING_IMAGE_ID" ]]; then
     if [[ "$FORCE_TEMPLATE_RECREATE" == true ]]; then
         echo "Forcing recreation of the image..."
         oneimage delete "$EXISTING_IMAGE_ID"
+        sleep 2
     else
         exit 0
     fi
