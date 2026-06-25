@@ -10,7 +10,7 @@ while [[ "$#" -gt 0 ]]; do
             shift
             ;;
         -h|--help)
-            echo "Use: ./script.sh -f/--force to force the recreation of the template"
+            echo "Use: ./script.sh -f/--force to force the recreation of the templates and images."
             ;;
         *) 
             echo "Error: Unknown parameter passed: $1"
@@ -67,6 +67,7 @@ else
     TEMPLATE_ID=$(echo "$OUTPUT" | awk '{print $2}')
 fi
 
+# CREATE FIRST VM
 OUTPUT=$(onetemplate instantiate "$TEMPLATE_ID")
 RUNNING_VM_ID=$(echo "$OUTPUT" | awk '{print $3}')
 
@@ -81,8 +82,6 @@ while true; do
 
     ssh -q -o StrictHostKeyChecking=no -o BatchMode=yes minikube@"$VM_IP" "minikube version" > /dev/null 2>&1
     
-    # $? è una variabile speciale di Bash che contiene l'esito dell'ultimo comando
-    # Se minikube status ha successo (exit 0), il cluster è pronto!
     if [[ $? -eq 0 ]]; then
         break
     fi
@@ -96,6 +95,18 @@ while [[ "$(onevm show -j "$RUNNING_VM_ID"  | jq -r '.VM.STATE')" != "4" ]]; do
     sleep 2
 done
 
+# SAVE THE DISK AS A NEW GOLDEN IMAGE
+EXISTING_IMAGE_ID=$(oneimage list -f NAME="minikube-disk" -l ID --csv  | tail -n +2)
+if [[ -n "$EXISTING_IMAGE_ID" ]]; then
+    echo "Image `minikube-disk` already exists with ID: $EXISTING_IMAGE_ID. To force the recreation of the image, use the -f/--force option."
+    if [[ "$FORCE_TEMPLATE_RECREATE" == true ]]; then
+        echo "Forcing recreation of the image..."
+        oneimage delete "$EXISTING_IMAGE_ID"
+    else
+        exit 0
+    fi
+fi
+
 OUTPUT=$(onevm disk-saveas "$RUNNING_VM_ID" 0 "minikube-disk")
 export IMAGE_ID=$(echo "$OUTPUT" | awk '{print $3}')
 
@@ -104,11 +115,22 @@ while [[ "$(onevm show -j "$RUNNING_VM_ID"  | jq -r '.VM.STATE')" != "4" ]]; do
     sleep 2
 done
 
+# CREATE GOLDEN IMAGE TEMPLATE
 EXISTING_TEMPLATE_ID=$(onetemplate list -f NAME="Minikube_VM" -l ID --csv  | tail -n +2)
 TEMPLATE_ID="$EXISTING_TEMPLATE_ID"
 if [[ -n "$EXISTING_TEMPLATE_ID" ]]; then
-    echo "Template already exists with ID: $EXISTING_TEMPLATE_ID. Exiting..."
-    exit 0
+    echo "Template already exists with ID: $EXISTING_TEMPLATE_ID"
+    if [[ "$FORCE_TEMPLATE_RECREATE" == true ]]; then
+        echo "Forcing recreation of the template..."
+        onetemplate delete "$EXISTING_TEMPLATE_ID"
+        IMAGE_ID=$(echo "$OUTPUT" | awk '{print $3}')
+        envsubst '${IMAGE_ID}' < templates/minikubeVM.tmpl > MinikubeVM.tmpl
+        OUTPUT=$(onetemplate create MinikubeVM.tmpl)
+        TEMPLATE_ID=$(echo "$OUTPUT" | awk '{print $2}')
+    else
+        echo "Template already exists. To force the recreation of the template, use the -f/--force option."
+        exit 0
+    fi
 else
     # CREATE TEMPLATE
     IMAGE_ID=$(echo "$OUTPUT" | awk '{print $3}')
