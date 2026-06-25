@@ -69,8 +69,11 @@ fi
 
 OUTPUT=$(onetemplate instantiate "$TEMPLATE_ID")
 RUNNING_VM_ID=$(echo "$OUTPUT" | awk '{print $3}')
-echo "Waiting for the VM to install Docker and MiniKube..."
-sleep 10
+
+while [[ "$(onevm show -j "$RUNNING_VM_ID"  | jq -r '.VM.STATE')" != "3" && "$(onevm show -j "$RUNNING_VM_ID"  | jq -r '.VM.LCM_STATE')" != "3" ]]; do
+    echo "Waiting for the VM to be in RUNNING state..."
+    sleep 5
+done
 
 VM_IP=$(onevm show -j "$RUNNING_VM_ID" | jq -r '.VM.TEMPLATE.NIC[0].IP')
 
@@ -88,10 +91,18 @@ while true; do
 done
 
 onevm stop "$RUNNING_VM_ID"
-sleep 20
+while [[ "$(onevm show -j "$RUNNING_VM_ID"  | jq -r '.VM.STATE')" != "4" ]]; do
+    echo "Waiting for the VM to be in STOPPED state..."
+    sleep 2
+done
 
 OUTPUT=$(onevm disk-saveas "$RUNNING_VM_ID" 0 "minikube-disk")
 export IMAGE_ID=$(echo "$OUTPUT" | awk '{print $3}')
+
+while [[ "$(onevm show -j "$RUNNING_VM_ID"  | jq -r '.VM.STATE')" != "4" ]]; do
+    echo "Waiting for the VM to be in STOPPED state..."
+    sleep 2
+done
 
 EXISTING_TEMPLATE_ID=$(onetemplate list -f NAME="Minikube_VM" -l ID --csv  | tail -n +2)
 TEMPLATE_ID="$EXISTING_TEMPLATE_ID"
@@ -106,5 +117,4 @@ else
     TEMPLATE_ID=$(echo "$OUTPUT" | awk '{print $2}')
 fi
 
-sleep 20
 onevm terminate "$RUNNING_VM_ID"
