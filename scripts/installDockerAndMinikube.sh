@@ -22,7 +22,7 @@ sudo apt-get upgrade -y
 # sudo systemctl start docker
 # sudo groupadd docker
 # sudo usermod -aG docker minikube
-sudo apt-get install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils
+sudo apt-get install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils
 sudo adduser `id -un` libvirt
 sudo adduser `id -un` kvm
 
