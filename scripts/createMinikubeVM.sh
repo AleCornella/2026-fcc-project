@@ -36,3 +36,5 @@ fi
 
 OUTPUT=$(onetemplate instantiate "$TEMPLATE_ID")
 RUNNING_VM_ID=$(echo "$OUTPUT" | awk '{print $3}')
+VM_IP=$(onevm show -j "$RUNNING_VM_ID" | jq -r '.VM.TEMPLATE.NIC[0].IP')
+echo "Minikube VM is running with ID: $RUNNING_VM_ID and IP: $VM_IP"
