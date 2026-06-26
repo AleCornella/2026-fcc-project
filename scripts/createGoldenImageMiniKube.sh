@@ -98,7 +98,7 @@ done
 # SAVE THE DISK AS A NEW GOLDEN IMAGE
 EXISTING_IMAGE_ID=$(oneimage list -f NAME="minikube-disk" -l ID --csv  | tail -n +2)
 if [[ -n "$EXISTING_IMAGE_ID" ]]; then
-    echo "Image `minikube-disk` already exists with ID: $EXISTING_IMAGE_ID. To force the recreation of the image, use the -f/--force option."
+    echo "Image 'minikube-disk' already exists with ID: $EXISTING_IMAGE_ID. To force the recreation of the image, use the -f/--force option."
     if [[ "$FORCE_TEMPLATE_RECREATE" == true ]]; then
         echo "Forcing recreation of the image..."
         oneimage delete "$EXISTING_IMAGE_ID"

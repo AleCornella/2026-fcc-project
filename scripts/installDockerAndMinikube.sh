@@ -23,12 +23,17 @@ sudo apt-get upgrade -y
 # sudo groupadd docker
 # sudo usermod -aG docker minikube
 sudo apt-get install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils
-sudo adduser `id -un` libvirt
-sudo adduser `id -un` kvm
+sudo adduser minikube libvirt
+sudo adduser minikube kvm
 
 echo "2. Install MiniKube"
 cd  /home/minikube
 curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
 sudo dpkg -i minikube_latest_amd64.deb
-echo 'alias kubectl="minikube kubectl --"' >> /home/minikube/.bashrc
-kubectl options
+# echo 'alias kubectl="minikube kubectl --"' >> /home/minikube/.bashrc
+# minikube kubectl options
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
