@@ -6,13 +6,7 @@ USER_A="alice"
 TENANT_B="tenant-b"
 USER_B="bob"
 
-
-# Ottieni l'indirizzo del server del cluster corrente
-
 CLUSTER_SERVER=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
-
-# The CA cert of minikube cluster
-
 CA_CERT_B64=$(kubectl get configmap kube-root-ca.crt -n default -o jsonpath='{.data.ca\.crt}' | openssl base64 -A)
 
 echo "Creating namespaces, users, and RBAC configurations for tenants..."
