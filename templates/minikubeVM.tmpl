@@ -8,10 +8,11 @@ SCHED_REQUIREMENTS = "HYPERVISOR=kvm"
 
 CONTEXT = [
   NETWORK = "YES",
-  PASSWORD = "dci+KL12bIGtq+TFZukZrQ==",
+  PASSWORD = "minikube",
   SSH_PUBLIC_KEY = "$USER[SSH_PUBLIC_KEY]",
   #START_SCRIPT_BASE64 = "${STARTUP_SCRIPT}",
-  USERNAME = "minikube"
+  USERNAME = "minikube",
+  HOSTNAME = "minikube"
 ]
 
 DISK = [
