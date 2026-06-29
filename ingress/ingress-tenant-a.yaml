@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tenant-a-ingress
+  namespace: tenant-a
+    #annotations:
+    #nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        #- path: /google(/|$)(.*)
+        #        pathType: ImplementationSpecific
+        #- path: /wordpress
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend-external # Google booutique frontend service
+            port:
+              number: 80
