@@ -82,13 +82,13 @@ metadata:
   name: tenant-admin-role
 rules:
 - apiGroups: ["", "apps", "batch", "extensions"]
-  resources: ["deployments", "replicasets", "pods", "pods/exec", "services", "configmaps", "secrets", "serviceaccounts", "endpoints", "persistentvolumeclaims", "jobs", "cronjobs"]
+  resources: ["deployments", "replicasets", "pods", "pods/exec","pods/attach", "services", "configmaps", "secrets", "serviceaccounts", "endpoints", "persistentvolumeclaims", "jobs", "cronjobs"]
   verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
 - apiGroups: ["autoscaling"]
   resources: ["horizontalpodautoscalers"]
   verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
 - apiGroups: ["networking.k8s.io"]
-  resources: ["ingresses"]
+  resources: ["ingresses","networkpolicies"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1

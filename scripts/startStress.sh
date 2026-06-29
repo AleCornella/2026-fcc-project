@@ -1,6 +1,6 @@
 #/bin/bash
 
-kubectl delete job cpu-hog --ignore-not-found
+KUBECONFIG=./kubeconfig-bob kubectl delete job cpu-hog --ignore-not-found
 NODE_NAME=$(kubectl get nodes -o jsonpath='{.items[0].metadata.name}')
 ALLOCATABLE_RAW=$(kubectl get nodes $NODE_NAME -o jsonpath='{.status.allocatable.cpu}')
 

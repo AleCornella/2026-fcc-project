@@ -3,6 +3,8 @@ kind: Job
 metadata:
   name: cpu-hog
 spec:
+  completions: 8 
+  parallelism: 8
   template:
     metadata:
       labels:
@@ -16,6 +18,4 @@ spec:
         args: ["--cpu", "8", "--timeout", "300s"]
         resources:
           requests:
-            cpu: "MAX_CPU_PLACEHOLDER"
-          limits:
-            cpu: "MAX_CPU_PLACEHOLDER"
+            cpu: "1000m"

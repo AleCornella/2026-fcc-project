@@ -56,33 +56,63 @@ It will also create two new user and namespcace that will rappresent two diffren
 ## Deploy the Workloads
 Use this script to deploy the application of Alice (namespace tenant-a). We are using the Google Online Boutique to have a realistic deployment.
 ```bash
-.script/deply-a.sh
+.scripts/deply-a.sh
 ```
 Now if you visit `*openNebulaIP*:8080` you should see the Google Boutique home page.
 
 
-# Noisy Neighbor Evaluation
+# Resource Governance
 ## Normal response time
 You can verify the normal response time with Locust.
 Start Locust:
-```
+```bash
 cd python
 locust
 ```
 Oen in your browser the locus interface http://127.0.0.1:8089. 
 Set:
--  .... *openNebulaIP*:8080 
--  ..... 150
--  ....... dsad
+-  Number of user: 150
+-  Rump up: 10
+-  Host: *openNebulaIP*:8080 
 
 ## Noisy neighbor
-Stop the Locust ... if you ran on the previous step.
+Stop the Locust test if you ran on the previous step.
 Now run the job of tenant-b that will esuaste all possible resource.
-```
-./script startStress.sh
+```bash
+./scripts/startStress.sh
 ```
 Wait some second for the job to start and then perfom the same test as before against the boutique of tenant-a.
 Now the response time will be much longer. You can notice also by visitong the webiste with your browser.
-After 5 minutes the noisy job will end and after little time the website will becme faster again.
+After 5 minutes the noisy job will end and after little time the website will become faster again.
 
-## Implement ResourceQuota and etc...
+## Mitigation
+### Implement LimitRange
+We now impose a first limitation with LimitRange. 
+```bash
+KUBECONFIG=./kubeconfig-bob kubectl apply -f limits/tenant-b-limit-range.yaml
+```
+Now we can no longer create job that take all the CPU available, but we can esauste all the resources creating multiple jobs.
+```
+./scripts/startStress-limited.sh
+```
+If we start a test with Locust we still have a lost in perfomance.
+
+### Implement ResourceQuota
+We now impose a quota of resources for namespace.
+```bash
+KUBECONFIG=./kubeconfig-bob kubectl apply -f quota/tenant-b-quota.yaml
+```
+If we rerun the previous stress test `./scripts/startStress-limited.sh` and Locust, you will notice that the response time stays low and similar to the one when no stess tests were conducted. So, we have shown how we can use LimitRange and ResourceQuota to impose a limit and avoid the possible damage created by a noisy neighbor.
+
+# Security Isolation
+## Isolation between tenant
+To ensure isolation between tenant we can use netowek policy enforced by Calico as the CNI of the cluster.
+First we can verify the absence of isolation
+```bash
+KUBECONFIG=./kubeconfig-bob kubectl apply -f deplyments/deployment-b.yaml
+SERVER_IP="$(KUBECONFIG=./kubeconfig-bob kubectl get pod -l app=bob-web-server -o jsonpath='{.items[0].status.podIP}')"
+KUBECONFIG=./kubeconfig-alice kubectl exec -it emailservice-588bb96b8-5tw56 -- wget -O - http://$SERVER_IP
+```
+You will see the Nginx welcome page.
+
+## Network policy
