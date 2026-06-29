@@ -39,3 +39,25 @@ curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scr
 chown minikube get_helm.sh
 chmod 700 get_helm.sh
 su - minikube -c "./get_helm.sh"
+
+sudo apt-get install -y nginx
+sudo tee /etc/nginx/nginx.conf <<EOF
+worker_processes auto;
+pid /run/nginx.pid;
+error_log /var/log/nginx/error.log;
+include /etc/nginx/modules-enabled/*.conf;
+
+events {
+    worker_connections 768;
+    # multi_accept on;
+}
+
+stream {
+    server {
+        listen 80; 
+        
+        proxy_pass 192.168.49.2:80;
+    }
+}
+EOF
+sudo nginx -s reload

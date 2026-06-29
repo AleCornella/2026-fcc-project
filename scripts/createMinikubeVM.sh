@@ -1,6 +1,7 @@
 #!/bin/bash
 
 FORCE_TEMPLATE_RECREATE=false
+CONFIG_NAT=true
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -8,6 +9,10 @@ while [[ "$#" -gt 0 ]]; do
             FORCE_TEMPLATE_RECREATE=true 
             shift
             ;;
+        --no-nat-config) 
+            CONFIG_NAT=false 
+            shift
+            ;; 
         -h|--help)
             echo "Use: ./script.sh -f/--force to force the recreation of the templates and images."
             ;;
@@ -38,3 +43,6 @@ OUTPUT=$(onetemplate instantiate "$TEMPLATE_ID")
 RUNNING_VM_ID=$(echo "$OUTPUT" | awk '{print $3}')
 VM_IP=$(onevm show -j "$RUNNING_VM_ID" | jq -r '.VM.TEMPLATE.NIC[0].IP')
 echo "Minikube VM is running with ID: $RUNNING_VM_ID and IP: $VM_IP"
+if [[ "$CONFIG_NAT" == true ]]; then
+    ./scripts/setNAT.sh "$VM_IP"
+fi

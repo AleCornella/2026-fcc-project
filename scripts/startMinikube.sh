@@ -1,6 +1,6 @@
 #!/bin/bash
 
-minikube start --cni=calico --container-runtime=containerd --driver=docker --extra-config=controller-manager.horizontal-pod-autoscaler-sync-period=20s # --nodes=3 
+minikube start --cni=calico --container-runtime=containerd --driver=docker --static-ip=192.168.49.2 --extra-config=controller-manager.horizontal-pod-autoscaler-sync-period=20s # --nodes=3 
 minikube addons enable metrics-server
 kubectl wait --namespace kube-system --for=condition=Available deployment/metrics-server --timeout=90s
 kubectl patch deployment metrics-server -n kube-system --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--metric-resolution=20s"}]'
