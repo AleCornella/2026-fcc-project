@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cpu-hog
+spec:
+  template:
+    metadata:
+      labels:
+        app: cpu-hog
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: stress
+        image: polinux/stress
+        command: ["stress"]
+        args: ["--cpu", "8", "--timeout", "300s"]
+        resources:
+          requests:
+            cpu: "MAX_CPU_PLACEHOLDER"
