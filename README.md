@@ -1,8 +1,8 @@
 # Fog and Cloud Computing Project
 
-This project demonstrates how a **noisy neighbor** can affect the performance of a Kubernetes workload and we can prvide isolation both between tenat and on the same tenant
+This project demonstrates how a **noisy neighbor** can affect the performance of a Kubernetes workload and how to provide isolation both between tenants and within the same tenant.
 
-We deply a minikube cluster inside a VM manged by OpenNebula
+We deploy a Minikube cluster inside a VM managed by OpenNebula.
 
 ## Goal
 For the **noisy neighbor** we want to:
@@ -11,141 +11,174 @@ For the **noisy neighbor** we want to:
 
 For the **isolation** we want to:
 - create a Calico network policies to block tenant-tenant comunication
-- use **Kata** container to isolate the pod
+- use **Kata container** to isolate the pod
 
 ## Repository Layout
 
-- `deployments/` - Kubernetes deployment and job manifests;
-- `hpas/` - Horizontal Pod Autoscaler manifests;
-- `ingress/` - Ingress resources for the application;
-- `scripts/` - Automation scripts for setup, deployment, and stress testing;
-- `templates/` - VM and environment templates used to create the lab environment.
+- `deployments/` - Kubernetes deployment and job manifests
+- `hpas/`        - Horizontal Pod Autoscaler manifests
+- `ingress/`     - Ingress resources for the application
+- `scripts/`     - Automation scripts for setup, deployment, and stress testing
+- `templates/`   - VM and environment templates used to create the lab environment.
 
 
 ## Requirements
 
-- A machine running OpenNebul cabable of running:
+- A machine running OpenNebula cabable of provisioning:
     - minimum: a VM with 8 cores and 16 GB of RAM
-- Locust installed (also on a diffrent machine respcet to the one running OpenNebula)
+- Locust installed on the Host machine
 
 
-## Environment Setup
-### Locust
-On your machine install Locust
+## Environment Setup Steps
+### 1. Locust
+On your local machine:
 ```bash
 pip install locust
 ```
-### Minikube Virtual Machine
-The project was created with OpenNebula running inside a local ubuntu VM using qemu and installed with miniONE. If you don't have a OpenNebula installation ready, you can follow the official instruction at this [link](https://docs.opennebula.io/7.2/getting_started/try_opennebula/opennebula_sandbox_deployment/deploy_opennebula_onprem_with_minione/). Once you have a working installation you can follow the next instructions.
 
-Use this command to copy all the necesary files inside the OpenNebula host.
+### 2. Set Up OpenNebula (if not already installed)
+The project was created with OpenNebula running inside a local ubuntu VM using QEMU and installed with miniONE. If you don't have a OpenNebula installation ready, you can follow the official instruction at this [link](https://docs.opennebula.io/7.2/getting_started/try_opennebula/opennebula_sandbox_deployment/deploy_opennebula_onprem_with_minione/).
+Once you have a working installation, proceed to the next step.
+
+
+### 3. Copy Files to OpenNebula Host
+Run the following command to copy all necessary files into the OpenNebula host:
 ```bash
 ./scripts/copy_on_opennebula.sh
 ```
-Now use ssh to enter inside your OpenNebula machine.
+Then SSH into your OpenNebula machine.
 
-In order to create the minikube VM run the following command inside the OpenNebula host. The script need to be launched by an user that can interact witht the OpenNebula API (for example the root user or the minione if OpenNebula was isntalled with MiniOne)
 
-The script will auto config some iptables and NAT rules so that you can access the service running on the minikube cluster. It was created to work in a setup where OpenNebula is installed as a QEMU VM on your linux host. It should work even with diffrent setup, but you can use the paramer `--no-nat-config` to avoid changing the iptables rules and use an ssh tunnel to the OpenNeubla VM instead. 
+### 4. Create the Minikube VM
+Inside the OpenNebula host, run the following command. The script must be executed by a user with OpenNebula API permissions (e.g., root or minione if installed via miniONE).
+
+> [!NOTE]
+> The script automatically configures iptables and NAT rules to allow access to services running on the Minikube cluster. It is designed for setups where OpenNebula is installed as a QEMU VM on a Linux host. For different setups, you can use the `--no-nat-config` flag to skip iptables changes and use an SSH tunnel instead.
+
 ```bash
 cd FCC-Project/
 ./scripts/openNebula/createMinikubeVM.sh
 ```
-You can use the argument `-f` or `--force` to force the script to recreate the templates and images. Pay attantion that this will eliminate:
-- all the templates named: `Ubunutu+minikube` and `Minikube_VM`
-- all the images named:`minikube-disk`
 
-If for some reason the script isn't working correclty you can manually create the Minikube VM using the Sunstone UI of OpenNubula. Create a VM based on ubuntu 24-04, with a disk 8 core, 16GB of RAM and 50GB of storage and set the cpu to `host-passthrough`. Then if you want to set up iptables and NAT forwarding run `./scripts/openNebula/setNAT.sh [YOUR_MINIKUBE_VM_IP]`.
+**Optional flags:**
+- You can use the argument `-f` or `--force` to force the script to recreate the templates and images.
+> [!CAUTION]
+> This will delete:
+> - all the templates named: `Ubuntu+minikube` and `Minikube_VM`
+> - all the images named: `minikube-disk`
 
-Once the Minikube Virtual Machine is ready and running, you need to **ssh** in it and then start Minikube using `startMinikube.sh` script:
 
+If the script fails, you can manually create the VM via the OpenNebula Sunstone UI:
+- Base image: Ubuntu 24.04
+- 8 vCPUs, 16 GB RAM, 50 GB storage
+- CPU mode: 'host-passthrough'
+
+Then set up iptables and NAT manually:
+```bash
+./scripts/openNebula/setNAT.sh [YOUR_MINIKUBE_VM_IP]
+```
+
+### 5. Start Minikube
+Once the Minikube VM is running, SSH into it and start Minikube:
 ```bash
 ./scripts/startMinikube.sh
 ```
-The script will start Minikube and enable Kata container, Calico CNI e the Nginx ingress for the cluster.
-It will also create two new user and namespcace that will rappresent two diffrent tenant that share the same cluster.
+
+The script will:
+- start Minikube
+- enable Kata container, Calico CNI e the Nginx ingress
+- create two user and namespcaces representing two different tenants sharing the same cluster
 
 ## Deploy the Workloads
-Use this script to deploy the application of Alice (namespace tenant-a). We are using the Google Online Boutique to have a realistic deployment.
+Deploy Alice's application (namespace tenant-a) using the Google Online Boutique for a realistic microservices demo:
 ```bash
 .scripts/minikube/deply-a.sh
 ```
-Now if you visit `*openNebulaIP*:8080` you should see the Google Boutique home page.
+Visit `*openNebulaIP*:8080` in your browser, you should see the Google Boutique home page.
 
 
-# Resource Governance
-## Normal response time
+## Resource Governance
+### Measure Normal Response Time
 You can verify the normal response time with Locust.
-Start Locust:
+To start Locust:
 ```bash
 cd python
 locust
 ```
-Oen in your browser the locus interface http://127.0.0.1:8089. 
-Set:
+Oen in your browser the locus interface `http://127.0.0.1:8089` and configure:
 -  Number of user: 150
 -  Rump up: 10
--  Host: http://[OpenNebulaIP]:8080 
+-  Host: `http://[OpenNebulaIP]:8080`
 
-## Noisy neighbor
-Stop the Locust test if you ran on the previous step.
-Now run the job of tenant-b that will esuaste all possible resource.
+### Simulate a Noisy Neighbor
+Stop the Locust test if running, then launch a resource-exhausting job from tenant B:
 ```bash
 ./scripts/startStress.sh
 ```
-Wait some second for the job to start and then perfom the same test as before against the boutique of tenant-a.
-You can monitor how much CPU is requested by pod on the node using this command: `kubectl describe node | grep -A 5 "Allocated resources:"`.
+Wait a few seconds for the job to start and then run again the Locust test against tenant A's boutique.
 
-Now the response time will be much longer. You can notice also by visitong the webiste with your browser.
-After 5 minutes the noisy job will end and after little time the website will become faster again.
+Monitor CPU usage on the node with:
+```bash
+kubectl describe node | grep -A 5 "Allocated resources:"
+```
+Now the response time will be much longer, the website will also feel slower in the browser.
 
-You can stop the stress test before the 5 minutes using this command: `kubectl delete job cpu-hog -n tenant-b`
+The stress test will automatically stop after 5 minutes. To stop it manually:
+```bash
+kubectl delete job cpu-hog -n tenant-b
+```
 
 ## Mitigation
-### Implement LimitRange
-We now impose a first limitation with LimitRange. 
+### Apply LimitRange
+To limit resource usage per pod in tenant B's namespace:
 ```bash
 kubectl apply -f minikube/limits/tenant-b-limit-range.yaml
 ```
-Now tenant B can no longer create job that take more than 1 entire CPU (before the job take all the avaiable CPU on the node), but we can still esauste all the resources creating multiple jobs.
+Now tenant B can no longer create job that take more than 1 full CPU. However, they can still exhaust resources by launching multiple jobs:
 ```
 ./scripts/startStress-limited.sh
 ```
-If we start a test with Locust we still have a lost in perfomance.
+Running Locust again will still show performance degradation.
 
-### Implement ResourceQuota
-We now impose a quota of resources for namespace.
+### Apply ResourceQuota
+Enforce a total resource quota for tenant B's namespace:
 ```bash
 kubectl apply -f quota/tenant-b-quota.yaml
 ```
-If we rerun the previous stress test `./scripts/startStress-limited.sh` and Locust, you will notice that the response time stays low and similar to the one when no stess tests were conducted. So, we have shown how we can use LimitRange and ResourceQuota to impose a limit and avoid the possible damage created by a noisy neighbor.
+Rerun the limited stress test:
+```bash
+./scripts/startStress-limited.sh
+```
+Now Locust results should show response times similar to the baseline demonstrating how LimitRange and ResourceQuota together can mitigate noisy neighbor issues.
 
-# Security Isolation
-## Isolation between tenant
-To ensure isolation between tenant we can use netowek policy enforced by Calico as the CNI of the cluster.
-First we can verify the absence of isolation
+## Security Isolation
+### Test Tenant Isolation (Without Policies)
+First, verify that tenants can communicate by default:
 ```bash
 KUBECONFIG=./kubeconfig-bob kubectl apply -f minikube/deployments/deployment-b.yaml
 SERVER_IP="$(KUBECONFIG=./kubeconfig-bob kubectl get pod -l app=bob-web-server -o jsonpath='{.items[0].status.podIP}')"
 KUBECONFIG=./kubeconfig-alice kubectl apply -f minikube/deployments/pod-a.yaml
 KUBECONFIG=./kubeconfig-alice kubectl exec -it pod-client-a -- wget -O - http://$SERVER_IP
 ```
-You should see in the terminal the nginx welcome page, confirming that the two tenant are not isolated by default.
-### Network policy
-We have prepared two network policies. One is the DenyAll that is applied to both tenant namespace. For tenant A we add a second policy to allow incoming traffic only on the frontend pos, allowing connection to the website.
+You should see the nginx welcome page, confirming that tenants are not isolated by default.
+
+### Apply Network Policies
+We prepared two network policies. One is the DenyAll that is applied to both tenant namespace. For tenant A we add a second policy to allow incoming traffic only on the frontend pos, gaining connection to the website.
 ```bash
 KUBECONFIG=./kubeconfig-alice kubectl apply -f minikube/network-policies/tenant-a-policy.yaml
 KUBECONFIG=./kubeconfig-bob kubectl apply -f minikube/network-policies/tenant-b-policy.yaml
 ```
-Now you can't wget the nginx page but you can still visit the boutique of tenat-a.
-## Isolation inside pods in a namespace
-We insteallled Kata container as a posible runtime. We now will show how using Kata if a pod is compromized, the attacker can't escape the pod as if the pod use the containerd runtime.
-First we will deploy a new pod with an ubuntu image and we intentionally set privileged as true to show how much possible data can be exifltrated.
+Now wget to the nginx pod will fail, but the boutique website remains accessible.
+
+### Pod-Level Isolation with Kata Containers
+Kata Containers provide stronger isolation by running each pod in a lightweight VM. We'll demonstrate this by deploying a privileged pod with and without Kata.
+
+**Without Kata (vulnerable):**
 ```bash
 KUBECONFIG=./kubeconfig-bob kubectl apply -f minikube/deployments/vulnerable-deployment.yaml
 KUBECONFIG=./kubeconfig-bob kubectl exec -it privileged-without-kata -- bash
 ```
-Then mount and verify you can see all he data of the Minikube VM
+Inside the pod, mount the host root filesystem:
 ```bash
 lsblk -l
 mkdir /host-root
@@ -153,17 +186,23 @@ mount /dev/vda1 /host-root
 ls -la /host-root
 ls -la /host-root/home
 ```
-Now delete the pod and recreate it using kata-qemu as the runtime class.
+You can see host files — this is a security risk.
+
+**With Kata (secure):**
+Now delete the pod and recreate it using kata-qemu as runtime class.
 ```bash
 KUBECONFIG=./kubeconfig-bob kubectl delete pod privileged-without-kata
 KUBECONFIG=./kubeconfig-bob kubectl apply -f minikube/deployments/vulnerable-deployment-kata.yaml
-# wait some second for the pod to be created
+```
+Wait for the pod to start, then exec into it:
+```bash
 KUBECONFIG=./kubeconfig-bob kubectl exec -it privileged-kata -- bash
 ```
-Now you are in a qemu VM. You can verify this by checking the kernel version and see that is different from the one of the Minikube VM and also you will not see the same disk partion of the Minikube VM.
+Now check the environment:
 ```bash
 lsblk -l 
 # You will **not** see the same disk partiton as before
 uname -a
 # if you run this command in the minikube VM and in the pod you will see different kernel
 ```
+This confirms that Kata provides VM-level isolation, preventing container breakout even with privileged access.
