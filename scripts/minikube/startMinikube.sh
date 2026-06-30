@@ -6,8 +6,8 @@ kubectl wait --namespace kube-system --for=condition=Available deployment/metric
 kubectl patch deployment metrics-server -n kube-system --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--metric-resolution=20s"}]'
 minikube addons enable ingress
 minikube ssh -n minikube     -- sudo mount -o remount,nosuid,nodev,noexec,size=50% /dev/shm # expand /dev/shm size to aovoid error when kata create kvm2 vm
-minikube ssh -n minikube-m02 -- sudo mount -o remount,nosuid,nodev,noexec,size=50% /dev/shm 
-minikube ssh -n minikube-m03 -- sudo mount -o remount,nosuid,nodev,noexec,size=50% /dev/shm
+# minikube ssh -n minikube-m02 -- sudo mount -o remount,nosuid,nodev,noexec,size=50% /dev/shm 
+# minikube ssh -n minikube-m03 -- sudo mount -o remount,nosuid,nodev,noexec,size=50% /dev/shm
 #echo "Waiting for the calico pod to be ready before installing Kata Containers..."
 kubectl wait --namespace ingress-nginx \
 --for=condition=ready pod \

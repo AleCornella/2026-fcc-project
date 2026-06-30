@@ -60,4 +60,4 @@ stream {
     }
 }
 EOF
-sudo nginx -s reload
+sudo systemctl restart nginx

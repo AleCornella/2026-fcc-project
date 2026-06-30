@@ -29,14 +29,24 @@ if [[ -n "$EXISTING_TEMPLATE_ID" ]]; then
     if [[ "$FORCE_TEMPLATE_RECREATE" == true ]]; then
         echo "Forcing recreation of the templates..."
         onetemplate delete "$EXISTING_TEMPLATE_ID"
-        bash scripts/openNebula/createGoldenImageMiniKube.sh -f
+        ./scripts/openNebula/createGoldenImageMiniKube.sh -f
+        EXISTING_TEMPLATE_ID=$(onetemplate list -f NAME="Minikube_VM" -l ID --csv  | tail -n +2)
+        TEMPLATE_ID="$EXISTING_TEMPLATE_ID"
+    else
+        echo "Template already exists with ID: $EXISTING_TEMPLATE_ID. To force the recreation of the template, use the -f/--force option."
+    fi
+else
+    if [[ "$FORCE_TEMPLATE_RECREATE" == true ]]; then
+        echo "Forcing recreation of the templates..."
+        onetemplate delete "$EXISTING_TEMPLATE_ID"
+        ./scripts/openNebula/createGoldenImageMiniKube.sh -f
+        EXISTING_TEMPLATE_ID=$(onetemplate list -f NAME="Minikube_VM" -l ID --csv  | tail -n +2)
+        TEMPLATE_ID="$EXISTING_TEMPLATE_ID"
+    else
+        ./scripts/openNebula/createGoldenImageMiniKube.sh
         EXISTING_TEMPLATE_ID=$(onetemplate list -f NAME="Minikube_VM" -l ID --csv  | tail -n +2)
         TEMPLATE_ID="$EXISTING_TEMPLATE_ID"
     fi
-else
-    bash scripts/openNebula/createGoldenImageMiniKube.sh
-    EXISTING_TEMPLATE_ID=$(onetemplate list -f NAME="Minikube_VM" -l ID --csv  | tail -n +2)
-    TEMPLATE_ID="$EXISTING_TEMPLATE_ID"
 fi
 
 OUTPUT=$(onetemplate instantiate "$TEMPLATE_ID")

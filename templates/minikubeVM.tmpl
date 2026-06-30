@@ -6,6 +6,10 @@ DESCRIPTION = "VM initialized with MiniKube installed and a minikube user with p
 HYPERVISOR = "kvm"
 SCHED_REQUIREMENTS = "HYPERVISOR=kvm"
 
+CPU_MODEL = [
+  MODEL = "host-passthrough"
+]
+
 CONTEXT = [
   NETWORK = "YES",
   PASSWORD = "minikube",
@@ -18,7 +22,7 @@ CONTEXT = [
 DISK = [
   IMAGE_ID = "${IMAGE_ID}",
   IMAGE_UNAME = "oneadmin",
-  SIZE = "20480"
+  SIZE = "51200"
 ]
 
 GRAPHICS = [
