@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: privileged-without-kata
+  namespace: tenant-b
+spec:
+  containers:
+  - name: kata-container
+    image: ubuntu
+    command: ["sleep", "infinity"]
+    securityContext:
+      privileged: true

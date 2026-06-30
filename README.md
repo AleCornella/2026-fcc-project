@@ -113,6 +113,41 @@ KUBECONFIG=./kubeconfig-bob kubectl apply -f deplyments/deployment-b.yaml
 SERVER_IP="$(KUBECONFIG=./kubeconfig-bob kubectl get pod -l app=bob-web-server -o jsonpath='{.items[0].status.podIP}')"
 KUBECONFIG=./kubeconfig-alice kubectl exec -it emailservice-588bb96b8-5tw56 -- wget -O - http://$SERVER_IP
 ```
-You will see the Nginx welcome page.
+### Network policy
+We have prepared two network policies. One is the DenyAll that is applied to both tenant namespace. For tenant-a we add a second policy to allow incoming traffic only on the frontend pos, allowing connection to the website.
+```bash
+KUBECONFIG=./kubeconfig-alice kubectl apply -f network-policies/tenant-a-policy.yaml
+KUBECONFIG=./kubeconfig-bob kubectl apply -f network-policies/tenant-b-policy.yaml
+```
 
-## Network policy
+## Isolation inside pods in a namespace
+We insteallled Kata container as a posible runtime. We now will show how using Kata if a pod is compromized, the attacker can't escape the pod as if the pod use the containerd runtime.
+First we will deploy a new pod with an ubuntu image and we intentionally set privileged as true to show how much possible data can be exifltrated.
+```bash
+KUBECONFIG=./kubeconfig-bob kubectl apply -f deployment/vulnerable-deployment.yaml
+KUBECONFIG=./kubeconfig-bob kubectl exec -it privileged-without-kata -- bash
+```
+Then mount and see the data of the Minikube VM
+```bash
+lsblk -l
+mkdir /host-root
+mount /dev/vda1 /host-root
+ls -la /host-root
+```
+Now delete the pod and recreate it using kata-qemu as the runtime class.
+```bash
+KUBECONFIG=./kubeconfig-bob kubectl delete pod privileged-without-kata
+KUBECONFIG=./kubeconfig-bob kubectl apply -f deployment/vulnerable-deployment-kata.yaml
+```
+Now you are in a qemu VM. You can verify this by checking the kernel version and see that is different from the one of the Minikube VM and also you will not see the same disk partion of the Minikube VM.
+```bash
+KUBECONFIG=./kubeconfig-bob kubectl delete pod privileged-without-kata
+KUBECONFIG=./kubeconfig-bob kubectl apply -f deployment/vulnerable-deployment-kata.yaml
+KUBECONFIG=./kubeconfig-bob kubectl exec -it privileged-kata -- bash
+```
+```bash
+lsblk -l 
+# You will **not** see the same disk partiton as before
+uname -a
+# if you run this command in the minikube VM and in the pod you will see different kernel
+```

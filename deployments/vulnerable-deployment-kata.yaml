@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: privileged-kata
+spec:
+  runtimeClassName: kata-qemu
+  containers:
+  - name: kata-container
+    image: ubuntu
+    command: ["sleep", "infinity"]
+    securityContext:
+      privileged: true
