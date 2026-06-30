@@ -18,4 +18,5 @@ export VERSION=$(curl -sSL https://api.github.com/repos/kata-containers/kata-con
 export CHART="oci://ghcr.io/kata-containers/kata-deploy-charts/kata-deploy"
 helm install kata-deploy "${CHART}" --version "${VERSION}"
 
-./scripts/createNamespaceBase.sh # create user and namespace for the 2 tenants
+./scripts/minikube/createNamespaceBase.sh # create user and namespace for the 2 tenants
+    

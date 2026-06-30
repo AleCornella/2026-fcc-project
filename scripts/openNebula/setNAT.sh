@@ -10,5 +10,6 @@ sudo nft insert rule ip filter FORWARD oifname "$BRIDGE" ip daddr "$MINIKUBE_IP"
 sudo nft insert rule ip filter FORWARD iifname "$BRIDGE" ip saddr "$MINIKUBE_IP" ct state established,related accept
 sudo nft add rule ip nat POSTROUTING ip daddr "$MINIKUBE_IP" tcp dport 80 masquerade
 
-sudo nft list ruleset > /etc/nftables.conf
-systemctl enable nftables
+# don't save rule (in case of error just reboot the machine to clear the rules)
+# sudo nft list ruleset > /etc/nftables.conf
+# systemctl enable nftables

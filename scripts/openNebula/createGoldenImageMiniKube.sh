@@ -54,14 +54,14 @@ if [[ -n "$EXISTING_TEMPLATE_ID" ]]; then
     if [[ "$FORCE_TEMPLATE_RECREATE" == true ]]; then
         echo "Forcing recreation of the template..."
         onetemplate delete "$EXISTING_TEMPLATE_ID"
-        export STARTUP_SCRIPT=$(base64 -w 0 "scripts/installDockerAndMinikube.sh")
+        export STARTUP_SCRIPT=$(base64 -w 0 "scripts/openNebula/installDockerAndMinikube.sh")
         envsubst '${STARTUP_SCRIPT},${IMAGE_NAME},${IMAGE_ID}' < templates/UbuntuMinikube.tmpl > MinikubeVM.tmpl
         OUTPUT=$(onetemplate create MinikubeVM.tmpl)
         TEMPLATE_ID=$(echo "$OUTPUT" | awk '{print $2}')
     fi
 else
     # CREATE TEMPLATE
-    export STARTUP_SCRIPT=$(base64 -w 0 "scripts/installDockerAndMinikube.sh")
+    export STARTUP_SCRIPT=$(base64 -w 0 "scripts/openNebula/installDockerAndMinikube.sh")
     envsubst '${STARTUP_SCRIPT},${IMAGE_NAME},${IMAGE_ID}' < templates/UbuntuMinikube.tmpl > MinikubeVM.tmpl
     OUTPUT=$(onetemplate create MinikubeVM.tmpl)
     TEMPLATE_ID=$(echo "$OUTPUT" | awk '{print $2}')

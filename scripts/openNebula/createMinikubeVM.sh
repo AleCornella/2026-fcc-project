@@ -29,12 +29,12 @@ if [[ -n "$EXISTING_TEMPLATE_ID" ]]; then
     if [[ "$FORCE_TEMPLATE_RECREATE" == true ]]; then
         echo "Forcing recreation of the templates..."
         onetemplate delete "$EXISTING_TEMPLATE_ID"
-        bash scripts/createGoldenImageMiniKube.sh -f
+        bash scripts/openNebula/createGoldenImageMiniKube.sh -f
         EXISTING_TEMPLATE_ID=$(onetemplate list -f NAME="Minikube_VM" -l ID --csv  | tail -n +2)
         TEMPLATE_ID="$EXISTING_TEMPLATE_ID"
     fi
 else
-    bash scripts/createGoldenImageMiniKube.sh
+    bash scripts/openNebula/createGoldenImageMiniKube.sh
     EXISTING_TEMPLATE_ID=$(onetemplate list -f NAME="Minikube_VM" -l ID --csv  | tail -n +2)
     TEMPLATE_ID="$EXISTING_TEMPLATE_ID"
 fi
@@ -44,5 +44,5 @@ RUNNING_VM_ID=$(echo "$OUTPUT" | awk '{print $3}')
 VM_IP=$(onevm show -j "$RUNNING_VM_ID" | jq -r '.VM.TEMPLATE.NIC[0].IP')
 echo "Minikube VM is running with ID: $RUNNING_VM_ID and IP: $VM_IP"
 if [[ "$CONFIG_NAT" == true ]]; then
-    ./scripts/setNAT.sh "$VM_IP"
+    ./scripts/openNebula/setNAT.sh "$VM_IP"
 fi
