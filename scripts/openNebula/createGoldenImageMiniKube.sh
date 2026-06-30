@@ -90,12 +90,12 @@ while true; do
 done
 
 # copy the kubeconfig folder from the host to the VM
-echo "Copying the minikube folder to the VM..."
-scp -r /minikube "minikube@"$VM_IP":~/minikube"
-ssh -q -o StrictHostKeyChecking=no -o BatchMode=yes minikube@"$VM_IP" "ls -l"
-echo "Copying the scripts folder to the VM..."
-scp -r /scripts/minikube "minikube@"$VM_IP":~/scripts/minikube"
-ssh -q -o StrictHostKeyChecking=no -o BatchMode=yes minikube@"$VM_IP" "ls -l"
+echo "Copying the minikube folder to the VM.."
+scp -r minikube/ "minikube@"$VM_IP":~/minikube"
+echo "Copying the scripts folder to the VM.."
+scp -r scripts/minikube/ "minikube@"$VM_IP":~/scripts"
+ssh -q -o StrictHostKeyChecking=no minikube@"$VM_IP" "sync"
+
 onevm stop "$RUNNING_VM_ID"
 while [[ "$(onevm show -j "$RUNNING_VM_ID"  | jq -r '.VM.STATE')" != "4" ]]; do
     echo "Waiting for the VM to be in STOPPED state..."

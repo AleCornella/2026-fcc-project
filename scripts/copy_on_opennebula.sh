@@ -5,6 +5,7 @@ read username
 echo "Insert the IP of the OpenNebula VM:"
 read ip
 
+ssh fog@192.168.122.191 "mkdir -p ~/FCC-Project"
 scp -r ./minikube "$username@$ip:~/FCC-Project/minikube"
 scp -r ./scripts "$username@$ip:~/FCC-Project/scripts"
 scp -r ./templates "$username@$ip:~/FCC-Project/templates"

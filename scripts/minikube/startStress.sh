@@ -22,4 +22,4 @@ fi
 
 FREE_MILLI=$((TOTAL_MILLI - ALLOCATED_MILLI))
 FREE_MILLI="${FREE_MILLI}m"
-sed "s/MAX_CPU_PLACEHOLDER/$FREE_MILLI/g" deployments/job-b.yaml | KUBECONFIG=./kubeconfig-bob kubectl apply -f -
+sed "s/MAX_CPU_PLACEHOLDER/$FREE_MILLI/g" minikube/deployments/job-b.yaml | KUBECONFIG=./kubeconfig-bob kubectl apply -f -
