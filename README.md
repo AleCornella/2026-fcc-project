@@ -10,16 +10,15 @@ For the **noisy neighbor** we want to:
 - Compare the behavior of the system before and during the stress phase
 
 For the **isolation** we want to:
-- create a Calico network policies to block tenant-tenant comunication
+- create a Calico network policies to block tenant-to-tenant comunication
 - use **Kata container** to isolate the pod
 
 ## Repository Layout
 
-- `deployments/` - Kubernetes deployment and job manifests
-- `hpas/`        - Horizontal Pod Autoscaler manifests
-- `ingress/`     - Ingress resources for the application
+- `minikube/` - all the Kubernetes yaml files
 - `scripts/`     - Automation scripts for setup, deployment, and stress testing
 - `templates/`   - VM and environment templates used to create the lab environment.
+- `python/` - Locust file used to test the performance of Tenant A. The file was created by google to simulate realistic traffic against the Onine Boutique demo e-commerce.
 
 
 ## Requirements
@@ -145,10 +144,6 @@ Running Locust again will still show performance degradation.
 
 ### Apply ResourceQuota
 Enforce a total resource quota for tenant B's namespace:
-```bash
-kubectl apply -f minikube/quota/tenant-b-quota.yaml
-```
-Rerun the limited stress test:
 ```bash
 kubectl apply -f minikube/quota/tenant-b-quota.yaml
 ```
