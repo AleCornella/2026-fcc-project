@@ -25,7 +25,8 @@ For the **isolation** we want to:
 ## Requirements
 
 - A machine running OpenNebul cabable of running:
-    - minimum: a VM with 8 cores and 16 GB of RAM
+    - minimum: a VM with 4 cores and 12 GB of RAM
+    - raccomended: a VM with 8 cores and 16 GB of RAM
 - Locust installed (also on a diffrent machine respcet to the one running OpenNebula)
 
 
@@ -42,14 +43,14 @@ Use this command to copy all the necesary files inside the OpenNebula host.
 ```bash
 ./scripts/copy_on_opennebula.sh
 ```
-Now use ssh to enter inside your OpenNebula machine.
+Now use **ssh** to enter inside your OpenNebula machine.
 
 In order to create the minikube VM run the following command inside the OpenNebula host. The script need to be launched by an user that can interact witht the OpenNebula API (for example the root user or the minione if OpenNebula was isntalled with MiniOne)
 
 The script will auto config some iptables and NAT rules so that you can access the service running on the minikube cluster. It was created to work in a setup where OpenNebula is installed as a QEMU VM on your linux host. It should work even with diffrent setup, but you can use the paramer `--no-nat-config` to avoid changing the iptables rules and use an ssh tunnel to the OpenNeubla VM instead. 
 ```bash
 cd FCC-Project/
-./scripts/openNebula/createMinikubeVM.sh
+(sudo) ./scripts/openNebula/createMinikubeVM.sh
 ```
 You can use the argument `-f` or `--force` to force the script to recreate the templates and images. Pay attantion that this will eliminate:
 - all the templates named: `Ubunutu+minikube` and `Minikube_VM`
@@ -68,9 +69,11 @@ It will also create two new user and namespcace that will rappresent two diffren
 ## Deploy the Workloads
 Use this script to deploy the application of Alice (namespace tenant-a). We are using the Google Online Boutique to have a realistic deployment.
 ```bash
-.scripts/minikube/deply-a.sh
+./scripts/deploy-a.sh
 ```
-Now if you visit `*openNebulaIP*:8080` you should see the Google Boutique home page.
+Afeter around 90s, the time the deplyment is started on the cluster, you can visit `*openNebulaIP*:8080` to see the Google Boutique home page.
+
+You can use `kubectl get pod -n tenant-a` to monitor the starting of the various pods.
 
 
 # Resource Governance
@@ -83,7 +86,7 @@ locust
 ```
 Oen in your browser the locus interface http://127.0.0.1:8089. 
 Set:
--  Number of user: 150
+-  Number of user: 100 (if your VM has 4 core)
 -  Rump up: 10
 -  Host: http://[OpenNebulaIP]:8080 
 
@@ -108,6 +111,8 @@ We now impose a first limitation with LimitRange.
 kubectl apply -f minikube/limits/tenant-b-limit-range.yaml
 ```
 Now tenant B can no longer create job that take more than 1 entire CPU (before the job take all the avaiable CPU on the node), but we can still esauste all the resources creating multiple jobs.
+
+Before running again the script wait a couple of minutes until the HPA of the tenant A will downscale the deplyment.
 ```
 ./scripts/startStress-limited.sh
 ```
@@ -116,7 +121,7 @@ If we start a test with Locust we still have a lost in perfomance.
 ### Implement ResourceQuota
 We now impose a quota of resources for namespace.
 ```bash
-kubectl apply -f quota/tenant-b-quota.yaml
+kubectl apply -f minikube/quota/tenant-b-quota.yaml
 ```
 If we rerun the previous stress test `./scripts/startStress-limited.sh` and Locust, you will notice that the response time stays low and similar to the one when no stess tests were conducted. So, we have shown how we can use LimitRange and ResourceQuota to impose a limit and avoid the possible damage created by a noisy neighbor.
 
@@ -153,7 +158,7 @@ mount /dev/vda1 /host-root
 ls -la /host-root
 ls -la /host-root/home
 ```
-Now delete the pod and recreate it using kata-qemu as the runtime class.
+Now exit, delete the pod, and recreate it using kata-qemu as the runtime class.
 ```bash
 KUBECONFIG=./kubeconfig-bob kubectl delete pod privileged-without-kata
 KUBECONFIG=./kubeconfig-bob kubectl apply -f minikube/deployments/vulnerable-deployment-kata.yaml

@@ -1,7 +1,7 @@
 NAME = "Minikube_VM"
-CPU = "4"
-VCPU = "4"
-MEMORY = "16384"
+CPU = "8"   # <-------------- CHANGE HERE IF YOU HAVE LESS CORE
+VCPU = "8"  # <-------------- CHANGE HERE IF YOU HAVE LESS CORE
+MEMORY = "16384" # <--------- CHANGE HERE IF YOU HAVE LESS MEMORY
 DESCRIPTION = "VM initialized with MiniKube installed and a minikube user with password minikube"
 HYPERVISOR = "kvm"
 SCHED_REQUIREMENTS = "HYPERVISOR=kvm"
