@@ -1,5 +1,8 @@
 # Fog and Cloud Computing Project
 
+> [!WARNING]
+> The version loaded on Moodle contains an hardcoded username and ip in the `./scripts/copy_on_opennebula.sh` script. You can copy the file manually or change the hardcoded username and ip to $username@$ip. We are sorry for the inconvinience.
+
 This project demonstrates how a **noisy neighbor** can affect the performance of a Kubernetes workload and how to provide isolation both between tenants and within the same tenant.
 
 We deploy a Minikube cluster inside a VM managed by OpenNebula.
