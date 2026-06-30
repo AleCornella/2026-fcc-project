@@ -19,7 +19,7 @@ while [[ "$#" -gt 0 ]]; do
     esac
 done
 
-# 1. Download the Ubunut image on which we will install MiniKube
+# Download the Ubunut image on which we will install MiniKube
 EXISTING_IMAGE_ID=$(oneimage list -f NAME="Ubuntu 24.04" -l ID --csv  | tail -n +2)
 
 
@@ -35,7 +35,7 @@ else
     export IMAGE_ID=$(echo $EXPORT_OUT | awk '{print $3}')
     echo "Downloading image with ID: $VM_IMAGE_ID and name: $IMAGE_NAME"
 
-    # 2. Wait for the disk to be downloaded
+    # Wait for the disk to be downloaded
     while true; do
         STATUS=$(oneimage show "$IMAGE_ID" -j | jq -r '.["IMAGE"]["STATE"]')
         if [[ "$STATUS" != '4' ]]; then
