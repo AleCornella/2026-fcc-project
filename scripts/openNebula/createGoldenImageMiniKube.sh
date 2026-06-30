@@ -89,6 +89,12 @@ while true; do
     sleep 10
 done
 
+# copy the kubeconfig folder from the host to the VM
+echo "Copying the minikube folder to the VM..."
+scp -r ./minikube "minikube@"$VM_IP":~/"
+echo "Copying the scripts folder to the VM..."
+scp -r ./scripts/minikube "minikube@"$VM_IP":~/"
+
 onevm stop "$RUNNING_VM_ID"
 while [[ "$(onevm show -j "$RUNNING_VM_ID"  | jq -r '.VM.STATE')" != "4" ]]; do
     echo "Waiting for the VM to be in STOPPED state..."
